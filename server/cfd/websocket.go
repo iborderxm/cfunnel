@@ -3,8 +3,8 @@ package cfd
 import (
 	"context"
 	"errors"
-	gobwas "github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
+	"github.com/fmnx/cftun/server/cfd/wsutil"
+	"github.com/gorilla/websocket"
 	"io"
 	"sync"
 	"time"
@@ -49,12 +49,12 @@ func (c *Conn) ping() (bool, error) {
 		return true, nil
 	}
 
-	return false, wsutil.WriteServerMessage(c.rw, gobwas.OpPing, []byte{})
+	return false, wsutil.WriteServerMessage(c.rw, websocket.PingMessage, []byte{})
 }
 
 func (c *Conn) pinger(ctx context.Context) {
 	pongMessge := wsutil.Message{
-		OpCode:  gobwas.OpPong,
+		OpCode:  websocket.PongMessage,
 		Payload: []byte{},
 	}
 

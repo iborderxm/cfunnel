@@ -2,15 +2,15 @@ package dialer
 
 import (
 	"context"
-	"go.uber.org/atomic"
 	"net"
+	"sync/atomic"
 	"syscall"
 )
 
 var (
-	DefaultInterfaceName  = atomic.NewString("")
-	DefaultInterfaceIndex = atomic.NewInt32(0)
-	DefaultRoutingMark    = atomic.NewInt32(0)
+	DefaultInterfaceName  string
+	DefaultInterfaceIndex int32
+	DefaultRoutingMark    int32
 )
 
 type Options struct {
@@ -32,17 +32,17 @@ type Options struct {
 
 func DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	return DialContextWithOptions(ctx, network, address, &Options{
-		InterfaceName:  DefaultInterfaceName.Load(),
-		InterfaceIndex: int(DefaultInterfaceIndex.Load()),
-		RoutingMark:    int(DefaultRoutingMark.Load()),
+		InterfaceName:  DefaultInterfaceName,
+		InterfaceIndex: int(atomic.LoadInt32(&DefaultInterfaceIndex)),
+		RoutingMark:    int(atomic.LoadInt32(&DefaultRoutingMark)),
 	})
 }
 
 func Dial(network, address string) (net.Conn, error) {
 	return DialWithOptions(network, address, &Options{
-		InterfaceName:  DefaultInterfaceName.Load(),
-		InterfaceIndex: int(DefaultInterfaceIndex.Load()),
-		RoutingMark:    int(DefaultRoutingMark.Load()),
+		InterfaceName:  DefaultInterfaceName,
+		InterfaceIndex: int(atomic.LoadInt32(&DefaultInterfaceIndex)),
+		RoutingMark:    int(atomic.LoadInt32(&DefaultRoutingMark)),
 	})
 }
 
@@ -66,9 +66,9 @@ func DialContextWithOptions(ctx context.Context, network, address string, opts *
 
 func ListenPacket(network, address string) (net.PacketConn, error) {
 	return ListenPacketWithOptions(network, address, &Options{
-		InterfaceName:  DefaultInterfaceName.Load(),
-		InterfaceIndex: int(DefaultInterfaceIndex.Load()),
-		RoutingMark:    int(DefaultRoutingMark.Load()),
+		InterfaceName:  DefaultInterfaceName,
+		InterfaceIndex: int(atomic.LoadInt32(&DefaultInterfaceIndex)),
+		RoutingMark:    int(atomic.LoadInt32(&DefaultRoutingMark)),
 	})
 }
 

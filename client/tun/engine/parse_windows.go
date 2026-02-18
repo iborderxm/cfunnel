@@ -3,7 +3,6 @@ package engine
 import (
 	"net/url"
 
-	"github.com/gorilla/schema"
 	"golang.org/x/sys/windows"
 	wun "golang.zx2c4.com/wireguard/tun"
 
@@ -16,18 +15,13 @@ func init() {
 }
 
 func parseTUN(u *url.URL, mtu uint32) (device.Device, error) {
-	opts := struct {
-		GUID string
-	}{}
-	if err := schema.NewDecoder().Decode(&opts, u.Query()); err != nil {
-		return nil, err
-	}
-	if opts.GUID != "" {
-		guid, err := windows.GUIDFromString(opts.GUID)
+	guid := u.Query().Get("guid")
+	if guid != "" {
+		guidValue, err := windows.GUIDFromString(guid)
 		if err != nil {
 			return nil, err
 		}
-		wun.WintunStaticRequestedGUID = &guid
+		wun.WintunStaticRequestedGUID = &guidValue
 	}
 	return tun.Open(u.Host, mtu)
 }

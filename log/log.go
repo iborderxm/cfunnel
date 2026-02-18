@@ -2,24 +2,23 @@ package log
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	stdlog "log"
 	"os"
+	"sync"
+	"time"
 )
 
 var (
 	logCh = make(chan Event)
 	_     = NewObservable[Event](logCh)
-	level = INFO
+	level  = INFO
+	logger = stdlog.New(os.Stdout, "", stdlog.LstdFlags)
+	mu     sync.Mutex
 )
 
 func init() {
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp:             true,
-		TimestampFormat:           "2006-01-02T15:04:05.999999999Z07:00",
-		EnvironmentOverrideColors: true,
-	})
+	stdlog.SetFlags(stdlog.LstdFlags)
+	stdlog.SetOutput(os.Stdout)
 }
 
 type Event struct {
@@ -56,7 +55,9 @@ func Debugln(format string, v ...any) {
 }
 
 func Fatalln(format string, v ...any) {
-	log.Fatalf(format, v...)
+	mu.Lock()
+	defer mu.Unlock()
+	logger.Fatalf(format, v...)
 }
 
 func print(data Event) {
@@ -64,16 +65,13 @@ func print(data Event) {
 		return
 	}
 
-	switch data.LogLevel {
-	case INFO:
-		log.Infoln(data.Payload)
-	case WARNING:
-		log.Warnln(data.Payload)
-	case ERROR:
-		log.Errorln(data.Payload)
-	case DEBUG:
-		log.Debugln(data.Payload)
-	}
+	mu.Lock()
+	defer mu.Unlock()
+
+	timestamp := time.Now().Format("2006-01-02T15:04:05.999999999Z07:00")
+	prefix := fmt.Sprintf("[%s] %s ", timestamp, data.LogLevel.String())
+	logger.SetPrefix(prefix)
+	logger.Println(data.Payload)
 }
 
 func newLog(logLevel LogLevel, format string, v ...any) Event {

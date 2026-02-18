@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/fmnx/cftun/log"
 	"github.com/fmnx/cftun/server/cfd"
-	"github.com/google/uuid"
+	"github.com/fmnx/cftun/uuid"
 	"net"
 	"net/netip"
 	"runtime"

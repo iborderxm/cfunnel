@@ -31,7 +31,7 @@ type Websocket struct {
 	Address  string
 
 	mu        sync.Mutex
-	connCount *atomic.Int32
+	connCount int32
 	stopChan  chan struct{}
 	connPool  chan net.Conn
 }
@@ -69,7 +69,7 @@ func NewWebsocket(params *Params) *Websocket {
 		Address:  address,
 		Url:      fmt.Sprintf("%s://%s", params.Scheme, host),
 
-		connCount: &atomic.Int32{},
+		connCount: 0,
 		stopChan:  make(chan struct{}),
 		connPool:  make(chan net.Conn, params.PoolSize),
 	}
@@ -86,7 +86,7 @@ func (w *Websocket) Close() {
 func (w *Websocket) preDial() {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if w.connCount.Load() >= w.params.PoolSize {
+	if atomic.LoadInt32(&w.connCount) >= w.params.PoolSize {
 		return
 	}
 	select {
@@ -99,7 +99,7 @@ func (w *Websocket) preDial() {
 		}
 		select {
 		case w.connPool <- conn:
-			w.connCount.Add(1)
+			atomic.AddInt32(&w.connCount, 1)
 			return
 		default:
 			_ = conn.Close()
@@ -140,7 +140,7 @@ func (w *Websocket) Dial(metadata *metadata.Metadata) (conn net.Conn, headerSent
 		err = errors.New("websocket has been closed")
 		return
 	case conn = <-w.connPool:
-		w.connCount.Add(-1)
+		atomic.AddInt32(&w.connCount, -1)
 		return
 	default:
 		conn, err = w.connect(metadata)

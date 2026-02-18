@@ -3,15 +3,14 @@ package engine
 import (
 	"github.com/fmnx/cftun/client/tun/buffer"
 	"github.com/fmnx/cftun/client/tun/dialer"
-	"gvisor.dev/gvisor/pkg/tcpip/stack"
 	"net"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 
-	"github.com/fmnx/cftun/client/tun/core"
 	"github.com/fmnx/cftun/client/tun/core/device"
-	"github.com/fmnx/cftun/client/tun/core/option"
 	"github.com/fmnx/cftun/client/tun/log"
+	"github.com/fmnx/cftun/client/tun/native"
 	"github.com/fmnx/cftun/client/tun/proxy"
 	"github.com/fmnx/cftun/client/tun/tunnel"
 )
@@ -22,8 +21,8 @@ var (
 	// Device holds the default device for the engine.
 	Device device.Device
 
-	// Stack holds the default stack for the engine.
-	Stack *stack.Stack
+	// NativeStack holds the native network stack for the engine.
+	NativeStack *native.NativeStack
 
 	ArgoProxy *proxy.Argo
 )
@@ -43,9 +42,8 @@ func stop() (err error) {
 	if ArgoProxy != nil {
 		go ArgoProxy.Close()
 	}
-	if Stack != nil {
-		Stack.Close()
-		Stack.Wait()
+	if NativeStack != nil {
+		NativeStack.Stop()
 	}
 	Mu.Unlock()
 	return nil
@@ -58,15 +56,19 @@ func HandleNetStack(argoProxy *proxy.Argo, device, interfaceName, logLevel strin
 	if err != nil {
 		return err
 	}
-	log.SetLogger(log.Must(log.NewLeveled(level)))
+	logger, err := log.NewLeveled(level)
+	if err != nil {
+		return err
+	}
+	log.SetLogger(logger)
 
 	if interfaceName != "" {
 		iface, err := net.InterfaceByName(interfaceName)
 		if err != nil {
 			return err
 		}
-		dialer.DefaultInterfaceName.Store(iface.Name)
-		dialer.DefaultInterfaceIndex.Store(int32(iface.Index))
+		dialer.DefaultInterfaceName = iface.Name
+		atomic.StoreInt32(&dialer.DefaultInterfaceIndex, int32(iface.Index))
 		log.Infof("[DIALER] bind to interface: %s", interfaceName)
 	}
 
@@ -78,43 +80,14 @@ func HandleNetStack(argoProxy *proxy.Argo, device, interfaceName, logLevel strin
 		return
 	}
 
-	var multicastGroups []netip.Addr
-	//if multicastGroups, err = parseMulticastGroups(MulticastGroups); err != nil {
-	//	return err
-	//}
-
-	var opts []option.Option
-	//if TCPModerateReceiveBuffer {
-	//	opts = append(opts, option.WithTCPModerateReceiveBuffer(true))
-	//}
-
-	//if TCPSendBufferSize != "" {
-	//	size, err := units.RAMInBytes(TCPSendBufferSize)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	opts = append(opts, option.WithTCPSendBufferSize(int(size)))
-	//}
-
-	//if TCPReceiveBufferSize != "" {
-	//	size, err := units.RAMInBytes(TCPReceiveBufferSize)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	opts = append(opts, option.WithTCPReceiveBufferSize(int(size)))
-	//}
-
-	if Stack, err = core.CreateStack(&core.Config{
-		LinkEndpoint:     Device,
-		TransportHandler: transport,
-		MulticastGroups:  multicastGroups,
-		Options:          opts,
-	}); err != nil {
-		return
+	NativeStack = native.New(Device, transport, mtu)
+	if err := NativeStack.Start(); err != nil {
+		log.Fatalf("[NATIVE] failed to start native stack: %v", err)
+		return err
 	}
 
 	log.Infof(
-		"[STACK] %s://%s <-> %s -> %s",
+		"[NATIVE] %s://%s <-> %s -> %s",
 		Device.Type(), Device.Name(),
 		argoProxy.Host(), argoProxy.Addr(),
 	)

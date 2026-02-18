@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"github.com/fmnx/cftun/log"
 	"github.com/fmnx/cftun/server/cfd"
-	"github.com/tidwall/gjson"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun/netstack"
@@ -31,6 +30,21 @@ type Warp struct {
 	Reserved   []byte `yaml:"reserved" json:"reserved"`
 	Proxy4     bool   `yaml:"proxy4" json:"proxy4"`
 	Proxy6     bool   `yaml:"proxy6" json:"proxy6"`
+}
+
+type warpConfig struct {
+	Config struct {
+		ClientID string `json:"client_id"`
+		Interface struct {
+			Addresses struct {
+				V6 string `json:"v6"`
+			} `json:"addresses"`
+		} `json:"interface"`
+	} `json:"config"`
+}
+
+type warpResponse struct {
+	Result warpConfig `json:"result"`
 }
 
 func (w *Warp) verify() bool {
@@ -105,8 +119,12 @@ func (w *Warp) apply() {
 	}
 
 	body, _ := io.ReadAll(reader)
-	clientID := gjson.Get(string(body), "config.client_id").String()
-	ipv6 := gjson.Get(string(body), "config.interface.addresses.v6").String()
+	var warpResp warpResponse
+	if err := json.Unmarshal(body, &warpResp); err != nil {
+		log.Fatalln("Failed to parse warp response: %v", err)
+	}
+	clientID := warpResp.Result.Config.ClientID
+	ipv6 := warpResp.Result.Config.Interface.Addresses.V6
 	if ipv6 == "" {
 		log.Fatalln("Failed to automatically apply for Warp.")
 	}

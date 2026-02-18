@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
+	"github.com/fmnx/cftun/uuid"
 )
 
 type TunnelToken struct {

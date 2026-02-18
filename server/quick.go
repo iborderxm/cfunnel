@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/fmnx/cftun/log"
 	"github.com/fmnx/cftun/server/cfd"
-	"github.com/google/uuid"
+	"github.com/fmnx/cftun/uuid"
 	"io"
 	"net/http"
 	"os"

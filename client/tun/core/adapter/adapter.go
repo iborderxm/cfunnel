@@ -2,16 +2,21 @@ package adapter
 
 import (
 	"net"
-
-	"gvisor.dev/gvisor/pkg/tcpip/stack"
 )
+
+type EndpointID struct {
+	LocalAddress  string
+	RemoteAddress string
+	LocalPort     uint16
+	RemotePort    uint16
+}
 
 // TCPConn implements the net.Conn interface.
 type TCPConn interface {
 	net.Conn
 
 	// ID returns the transport endpoint id of TCPConn.
-	ID() *stack.TransportEndpointID
+	ID() *EndpointID
 }
 
 // UDPConn implements net.Conn and net.PacketConn.
@@ -20,5 +25,5 @@ type UDPConn interface {
 	net.PacketConn
 
 	// ID returns the transport endpoint id of UDPConn.
-	ID() *stack.TransportEndpointID
+	ID() *EndpointID
 }

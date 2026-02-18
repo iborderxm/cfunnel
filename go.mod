@@ -5,22 +5,11 @@ go 1.23.1
 replace golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173 => github.com/fmnx/wireguard-go v0.0.0-20250326095939-28da4db2ad05
 
 require (
-	github.com/gobwas/ws v1.4.0
-	github.com/google/uuid v1.6.0
-	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/quic-go/quic-go v0.45.0
-	github.com/rs/zerolog v1.33.0
-	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/pflag v1.0.5
-	github.com/tidwall/gjson v1.18.0
-	go.uber.org/atomic v1.11.0
-	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.32.0
 	golang.org/x/sys v0.29.0
-	golang.org/x/time v0.9.0
 	golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
-	gvisor.dev/gvisor v0.0.0-20250127185940-f6673e13e290
 	zombiezen.com/go/capnproto2 v2.18.0+incompatible
 )
 

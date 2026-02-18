@@ -9,10 +9,9 @@ import (
 	"sync"
 	"time"
 
-	gobwas "github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
+	"github.com/fmnx/cftun/client/tun/transport/argo/wsutil"
 	"github.com/gorilla/websocket"
-	"github.com/rs/zerolog"
+	"github.com/fmnx/cftun/client/tun/log"
 )
 
 const (
@@ -79,7 +78,7 @@ func (c *GorillaConn) SetDeadline(t time.Time) error {
 
 type Conn struct {
 	rw  io.ReadWriter
-	log *zerolog.Logger
+	log *log.SugaredLogger
 	// writeLock makes sure
 	// 1. Only one write at a time. The pinger and Stream function can both call write.
 	// 2. Close only returns after in progress Write is finished, and no more Write will succeed after calling Close.
@@ -113,7 +112,7 @@ func (c *Conn) Write(p []byte) (int, error) {
 
 func (c *Conn) pinger(ctx context.Context) {
 	pongMessge := wsutil.Message{
-		OpCode:  gobwas.OpPong,
+		OpCode:  websocket.PongMessage,
 		Payload: []byte{},
 	}
 
@@ -127,10 +126,10 @@ func (c *Conn) pinger(ctx context.Context) {
 				return
 			}
 			if err != nil {
-				c.log.Debug().Err(err).Msgf("failed to write ping message")
+				c.log.Debugf("failed to write ping message: %v", err)
 			}
 			if err := wsutil.HandleClientControlMessage(c.rw, pongMessge); err != nil {
-				c.log.Debug().Err(err).Msgf("failed to write pong message")
+				c.log.Debugf("failed to write pong message: %v", err)
 			}
 		case <-ctx.Done():
 			return
@@ -146,7 +145,7 @@ func (c *Conn) ping() (bool, error) {
 		return true, nil
 	}
 
-	return false, wsutil.WriteServerMessage(c.rw, gobwas.OpPing, []byte{})
+	return false, wsutil.WriteServerMessage(c.rw, websocket.PingMessage, []byte{})
 }
 
 func (c *Conn) pingPeriod(ctx context.Context) time.Duration {

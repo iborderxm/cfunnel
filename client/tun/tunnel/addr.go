@@ -3,8 +3,6 @@ package tunnel
 import (
 	"net"
 	"net/netip"
-
-	"gvisor.dev/gvisor/pkg/tcpip"
 )
 
 // parseNetAddr parses net.Addr to IP and port.
@@ -31,8 +29,8 @@ func parseAddrString(s string) (netip.Addr, uint16) {
 	return ap.Addr(), ap.Port()
 }
 
-// parseTCPIPAddress parses tcpip.Address to netip.Addr.
-func parseTCPIPAddress(addr tcpip.Address) netip.Addr {
-	ip, _ := netip.AddrFromSlice(addr.AsSlice())
+// parseTCPIPAddress parses string to netip.Addr.
+func parseTCPIPAddress(addr string) netip.Addr {
+	ip, _ := netip.ParseAddr(addr)
 	return ip
 }

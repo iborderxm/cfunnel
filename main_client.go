@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/fmnx/cftun/client"
 	"github.com/fmnx/cftun/log"
-	"github.com/spf13/pflag"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -45,16 +45,16 @@ var (
 )
 
 func init() {
-	pflag.StringVarP(&configFile, "config", "c", "./config.json", "")
-	pflag.BoolVarP(&showVersion, "version", "v", false, "")
+	flag.StringVar(&configFile, "config", "./config.json", "")
+	flag.BoolVar(&showVersion, "version", false, "")
 
-	pflag.Usage = func() {
+	flag.Usage = func() {
 		fmt.Println("Cftun Client - Cloudflare Tunnel Client")
 		fmt.Println("Usage:")
-		fmt.Printf("  -c,--config\tSpecify the path to the config file.(default: \"./config.json\")\n")
-		fmt.Printf("  -v,--version\tDisplay the current binary file version.\n")
+		fmt.Printf("  -config\tSpecify the path to the config file.(default: \"./config.json\")\n")
+		fmt.Printf("  -version\tDisplay the current binary file version.\n")
 	}
-	pflag.Parse()
+	flag.Parse()
 }
 
 func main() {

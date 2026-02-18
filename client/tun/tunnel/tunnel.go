@@ -3,9 +3,8 @@ package tunnel
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
-
-	"go.uber.org/atomic"
 
 	"github.com/fmnx/cftun/client/tun/core/adapter"
 	"github.com/fmnx/cftun/client/tun/proxy"
@@ -28,7 +27,7 @@ type Tunnel struct {
 	udpQueue chan adapter.UDPConn
 
 	// UDP session timeout.
-	udpTimeout *atomic.Duration
+	udpTimeout int64
 
 	// Internal proxy.Dialer for Tunnel.
 	dialerMu sync.RWMutex
@@ -44,7 +43,7 @@ func New(dialer *proxy.Argo) *Tunnel {
 	return &Tunnel{
 		tcpQueue:   make(chan adapter.TCPConn),
 		udpQueue:   make(chan adapter.UDPConn),
-		udpTimeout: atomic.NewDuration(udpSessionTimeout),
+		udpTimeout: int64(udpSessionTimeout),
 		dialer:     dialer,
 		procCancel: func() { /* nop */ },
 	}
@@ -109,5 +108,5 @@ func (t *Tunnel) SetDialer(dialer *proxy.Argo) {
 }
 
 func (t *Tunnel) SetUDPTimeout(timeout time.Duration) {
-	t.udpTimeout.Store(timeout)
+	atomic.StoreInt64(&t.udpTimeout, int64(timeout))
 }

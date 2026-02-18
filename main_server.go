@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/fmnx/cftun/log"
 	"github.com/fmnx/cftun/server"
-	"github.com/spf13/pflag"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -51,26 +51,26 @@ var (
 )
 
 func init() {
-	pflag.StringVarP(&configFile, "config", "c", "./config.json", "")
-	pflag.StringVarP(&token, "token", "t", "", "")
-	pflag.BoolVarP(&isQuick, "quick", "q", false, "")
-	pflag.BoolVarP(&proxy4, "proxy4", "4", false, "")
-	pflag.BoolVarP(&proxy6, "proxy6", "6", false, "")
-	pflag.IntVarP(&port, "port", "p", 51280, "")
-	pflag.BoolVarP(&showVersion, "version", "v", false, "")
+	flag.StringVar(&configFile, "config", "./config.json", "")
+	flag.StringVar(&token, "token", "", "")
+	flag.BoolVar(&isQuick, "quick", false, "")
+	flag.BoolVar(&proxy4, "proxy4", false, "")
+	flag.BoolVar(&proxy6, "proxy6", false, "")
+	flag.IntVar(&port, "port", 51280, "")
+	flag.BoolVar(&showVersion, "version", false, "")
 
-	pflag.Usage = func() {
+	flag.Usage = func() {
 		fmt.Println("Cftun Server - Cloudflare Tunnel Server")
 		fmt.Println("Usage:")
-		fmt.Printf("  -c,--config\tSpecify the path to the config file.(default: \"./config.json\")\n")
-		fmt.Printf("  -t,--token\tWhen a token is provided, the configuration file will be ignored.\n")
-		fmt.Printf("  -q,--quick\tTemporary server, no Cloudflare account required, based on try.cloudflare.com.\n")
-		fmt.Printf("  -4,--proxy4\tUse the WARP proxy for IPv4 traffic; Ignored when using a configuration file.\n")
-		fmt.Printf("  -6,--proxy6\tUse the WARP proxy for IPv6 traffic; Ignored when using a configuration file.\n")
-		fmt.Printf("  -p,--port\tSet the local port for WARP; Ignored when using a configuration file.\n")
-		fmt.Printf("  -v,--version\tDisplay the current binary file version.\n")
+		fmt.Printf("  -config\tSpecify the path to the config file.(default: \"./config.json\")\n")
+		fmt.Printf("  -token\tWhen a token is provided, the configuration file will be ignored.\n")
+		fmt.Printf("  -quick\tTemporary server, no Cloudflare account required, based on try.cloudflare.com.\n")
+		fmt.Printf("  -proxy4\tUse the WARP proxy for IPv4 traffic; Ignored when using a configuration file.\n")
+		fmt.Printf("  -proxy6\tUse the WARP proxy for IPv6 traffic; Ignored when using a configuration file.\n")
+		fmt.Printf("  -port\tSet the local port for WARP; Ignored when using a configuration file.\n")
+		fmt.Printf("  -version\tDisplay the current binary file version.\n")
 	}
-	pflag.Parse()
+	flag.Parse()
 }
 
 func main() {

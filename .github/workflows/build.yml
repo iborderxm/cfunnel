@@ -26,6 +26,11 @@ jobs:
           go version
           echo "GOROOT=$GOROOT"  # 确认环境变量
 
+      - name: Go mod tidy
+        run: |
+          go mod tidy
+          go mod verify
+
       - name: Build with build.sh
         run: |
           chmod +x build.sh

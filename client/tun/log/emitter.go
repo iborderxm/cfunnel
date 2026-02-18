@@ -19,7 +19,7 @@ type emitter struct {
 }
 
 func (e *emitter) setLogger(logger *SugaredLogger) {
-	e.logger = logger.WithOptions(pkgCallerSkip)
+	e.logger = logger
 }
 
 func (e *emitter) logf(level glog.Level, format string, args ...any) {

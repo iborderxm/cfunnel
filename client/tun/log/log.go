@@ -3,8 +3,6 @@ package log
 import (
 	"fmt"
 	"sync"
-
-	"go.uber.org/zap"
 )
 
 // global Logger and SugaredLogger.
@@ -15,19 +13,15 @@ var (
 )
 
 func init() {
-	SetLogger(zap.Must(zap.NewProduction()))
+	SetLogger(NewLogger(InfoLevel))
 }
 
 func NewLeveled(l Level, options ...Option) (*Logger, error) {
 	switch l {
 	case SilentLevel:
-		return zap.NewNop(), nil
-	case DebugLevel:
-		return zap.NewDevelopment(options...)
-	case InfoLevel, WarnLevel, ErrorLevel, DPanicLevel, PanicLevel, FatalLevel:
-		cfg := zap.NewProductionConfig()
-		cfg.Level.SetLevel(l)
-		return cfg.Build(options...)
+		return NewLogger(SilentLevel), nil
+	case DebugLevel, InfoLevel, WarnLevel, ErrorLevel, DPanicLevel, PanicLevel, FatalLevel:
+		return NewLogger(l), nil
 	default:
 		return nil, fmt.Errorf("invalid level: %s", l)
 	}
@@ -37,8 +31,7 @@ func NewLeveled(l Level, options ...Option) (*Logger, error) {
 func SetLogger(logger *Logger) {
 	_globalMu.Lock()
 	defer _globalMu.Unlock()
-	// apply pkgCallerSkip to global loggers.
-	_globalL = logger.WithOptions(pkgCallerSkip)
+	_globalL = logger
 	_globalS = _globalL.Sugar()
 	_globalE.setLogger(_globalS)
 }

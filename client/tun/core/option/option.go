@@ -25,7 +25,7 @@ const (
 
 	// icmpLimit is the default maximum number of ICMP messages permitted
 	// by this rate limiter.
-	icmpLimit rate.Limit = 1000
+	icmpLimit float64 = 1000
 
 	// tcpCongestionControl is the congestion control algorithm used by
 	// stack. ccReno is the default option in gVisor stack.
@@ -152,9 +152,9 @@ func WithICMPBurst(burst int) Option {
 
 // WithICMPLimit sets the maximum number of ICMP messages permitted
 // by rate limiter.
-func WithICMPLimit(limit rate.Limit) Option {
+func WithICMPLimit(limit float64) Option {
 	return func(s *stack.Stack) error {
-		s.SetICMPLimit(limit)
+		s.SetICMPLimit(rate.Limit(limit))
 		return nil
 	}
 }
