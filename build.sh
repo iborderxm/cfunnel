@@ -6,7 +6,7 @@ APP_NAME="cftun"
 VERSION="2.1.4"
 BUILD_TYPE="release"
 BUILD_DIR="build"
-PLATFORMS=("linux/amd64" "linux/arm64" "linux/arm" "windows/amd64" "windows/arm64" "darwin/amd64" "darwin/arm64" "freebsd/amd64")
+PLATFORMS=("linux/amd64" "linux/mipsle" "windows/amd64")
 
 # 创建 build 目录
 mkdir -p $BUILD_DIR
@@ -22,9 +22,9 @@ for PLATFORM in "${PLATFORMS[@]}"; do
     fi
 
     echo "Building for $OS/$ARCH..."
-    LDFLAGS="-X main.Version=$VERSION -X main.BuildDate=$(date '+%Y-%m-%d_%H:%M:%S_%Z') -X main.BuildType=$BUILD_TYPE"
+    LDFLAGS="-s -w -X main.Version=$VERSION -X main.BuildDate=$(date '+%Y-%m-%d_%H:%M:%S_%Z') -X main.BuildType=$BUILD_TYPE"
 
-    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -ldflags "$LDFLAGS" -o $BUILD_DIR/$OUTPUT_NAME
+    env CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -trimpath -ldflags "$LDFLAGS" -o $BUILD_DIR/$OUTPUT_NAME
 
     # 压缩文件
     if [ "$OS" == "windows" ]; then
