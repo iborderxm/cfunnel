@@ -1,14 +1,14 @@
-// Package tun provides TUN which implemented device.Device interface.
 package tun
 
 import (
 	"github.com/fmnx/cftun/client/tun/core/device"
 )
 
-const Driver = "tun"
+const (
+	// Driver is the driver name for TUN devices.
+	Driver = "tun"
+)
 
-func (t *TUN) Type() string {
-	return Driver
+func Open(name string, mtu uint32) (device.Device, error) {
+	return openPlatform(name, mtu)
 }
-
-var _ device.Device = (*TUN)(nil)

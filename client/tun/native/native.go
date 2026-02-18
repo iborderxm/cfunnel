@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/fmnx/cftun/client/tun/core/adapter"
@@ -303,6 +302,26 @@ type nativeUDPConn struct {
 	dstAddr *net.UDPAddr
 	data    []byte
 	stack   *NativeStack
+	id      *adapter.EndpointID
+}
+
+func newNativeUDPConn(srcAddr, dstAddr *net.UDPAddr, data []byte, stack *NativeStack) *nativeUDPConn {
+	return &nativeUDPConn{
+		srcAddr: srcAddr,
+		dstAddr: dstAddr,
+		data:    data,
+		stack:   stack,
+		id: &adapter.EndpointID{
+			LocalAddress:  dstAddr.IP.String(),
+			RemoteAddress: srcAddr.IP.String(),
+			LocalPort:     uint16(dstAddr.Port),
+			RemotePort:    uint16(srcAddr.Port),
+		},
+	}
+}
+
+func (c *nativeUDPConn) ID() *adapter.EndpointID {
+	return c.id
 }
 
 func (c *nativeUDPConn) LocalAddr() net.Addr {

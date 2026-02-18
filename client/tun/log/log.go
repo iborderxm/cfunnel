@@ -33,7 +33,6 @@ func SetLogger(logger *Logger) {
 	defer _globalMu.Unlock()
 	_globalL = logger
 	_globalS = _globalL.Sugar()
-	_globalE.setLogger(_globalS)
 }
 
 func logf(lvl Level, template string, args ...any) {

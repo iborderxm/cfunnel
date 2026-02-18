@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/fmnx/cftun/client/tun/core/device"
-	"github.com/fmnx/cftun/client/tun/core/device/fdbased"
 	"github.com/fmnx/cftun/client/tun/core/device/tun"
 )
 
@@ -25,8 +24,6 @@ func parseDevice(s string, mtu uint32) (device.Device, error) {
 	driver := strings.ToLower(u.Scheme)
 
 	switch driver {
-	case fdbased.Driver:
-		return parseFD(u, mtu)
 	case tun.Driver:
 		return parseTUN(u, mtu)
 	default:
@@ -34,14 +31,8 @@ func parseDevice(s string, mtu uint32) (device.Device, error) {
 	}
 }
 
-func parseFD(u *url.URL, mtu uint32) (device.Device, error) {
-	offset := 0
-	// fd offset in ios
-	// https://stackoverflow.com/questions/69260852/ios-network-extension-packet-parsing/69487795#69487795
-	if runtime.GOOS == "ios" {
-		offset = 4
-	}
-	return fdbased.Open(u.Host, mtu, offset)
+func parseTUN(u *url.URL, mtu uint32) (device.Device, error) {
+	return tun.Open(u.Host, mtu)
 }
 
 func parseMulticastGroups(s string) (multicastGroups []netip.Addr, _ error) {
